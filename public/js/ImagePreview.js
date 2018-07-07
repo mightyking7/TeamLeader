@@ -77,3 +77,22 @@ function canRender(fileName)
 
     return (false);
 }
+
+
+/**
+ *
+ * View for image preview
+ */
+
+<div class="form-group row">
+    <label for="profile-picture" class="col-md-4 col-form-label text-md-right"> {{__('Profile Picture') }} </label>
+<div class="col-md-6">
+    <input type="file" name="profile picture" id="profilePictureUpload" onchange="renderImage(this);">
+    </div>
+    </div>
+
+    <!-- Profile picture upload and preview-->
+    <div class="form-group row" >
+    <div class="col-md-6 text-md-center offset-3" id="imagePreview">
+    </div>
+    </div>

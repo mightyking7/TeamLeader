@@ -60,6 +60,17 @@
                             </div>
                         </div>
 
+                        <div class="form-group row">
+                            <div class="col-md-6 offset-md-4">
+                                <div class="checkbox" >
+                                    <label>
+                                        <input type="checkbox" id="termsAndPrivacyPolicy" required="true">
+                                        {{ __('Agree to Terms of service and Privacy policy') }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-group row mb-0">
                             <div class="col-md-6 offset-md-4">
                                 <button type="submit" class="btn btn-primary">

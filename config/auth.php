@@ -70,10 +70,10 @@ return [
             'model' => App\Captain::class,
         ],
 
-        // 'captains' => [
-        //     'driver' => 'database',
-        //     'table' => 'captains',
-        // ],
+         'captains' => [
+             'driver' => 'database',
+             'table' => 'captains',
+         ],
     ],
 
     /*

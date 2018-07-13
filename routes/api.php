@@ -17,4 +17,6 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/send', 'EmailController@validateCaptainEmail');
+Route::post('/send', 'BusinessEmailController@sendVerificationEmail');
+
+Route::post('/confirm', 'BusinessEmailController@verifyCaptainEmail');

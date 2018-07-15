@@ -18,33 +18,31 @@ class BusinessEmailController extends Controller
 
     private $errorMessage;   // custom error message to send in response
 
-    private $successMessage; // success message to send in response
+    private $successMessage; // default success message to send in response
 
-    private $TeamLeaderURL = "http://teamleader.test"; // Official TeamLeader URL for email verification
+    private $status;         // request status, defaulted to bad request
 
+    private $TeamLeaderURL;  // Official TeamLeader URL for email verification
 
     /**
      * BusinessEmailController constructor.
-     * Create a captain from the given email, if the email does not
-     * exists or is null return a 404 response.
-     * @param Request $request
      */
-    public function __construct(Request $request)
+    public function __construct()
     {
-        // Email verification request
-        if(!empty($request->input('email')))
-        {
-            $this->captain = Captain::where('email', '=', $request->input('email'))->firstOrFail();
-        }
+        $this->successMessage = "Request complete";
 
-        $this->successMessage = "Request completed";
+        $this->status = 400;
+
+        $this->TeamLeaderURL = "http://teamleader.test";
     }
 
     /**
      * Used to send a verification email to the new Captain
+     * The Captain must have already successfully created an account
+     * in order to receive this verification email.
      *
      * @param Request $request
-     * @return JSON response for successful request
+     * @return \Illuminate\Http\JsonResponse response for successful request
      */
     public function sendVerificationEmail(Request $request)
     {
@@ -54,35 +52,49 @@ class BusinessEmailController extends Controller
 
         $toEmail = $request->input('email');   // email to verify
 
-        $link = $this->TeamLeaderURL."/confirm";    // link to verification page
+        $link = $this->TeamLeaderURL . "/confirm";  // link to verification page
 
-        // generate a confirmation token for the captain and save it in the database
-        $confirmToken = bin2hex(random_bytes(16));
+        $confirmToken = null;                       // email confirmation token
 
-        $this->captain->confirm_token = $confirmToken;
+        $this->errorMessage = "One or more pieces of Captain information is not valid";
 
-        $this->captain->save();
+        // validate input and send the email only if the Captain has a registered account with TeamLeader
+        if (!empty($title) && !empty($content) && !empty($toEmail) && !Captain::where('email', '=', $toEmail)->get()->isEmpty())
+        {
 
-        // append the confirmation token to the link and send the verification email
+            // generate a confirmation token and save it in the database
+            $confirmToken = bin2hex(random_bytes(16));
 
-        $link .= "?confirmToken=$confirmToken";
+            $this->captain = Captain::where('email', '=', $toEmail)->first();
 
-        Mail::send('emails.VerifyEmail', ['title' => $title, 'content'=> $content, 'link'=> $link], function($message) use ($toEmail){
+            $this->captain->confirm_token = $confirmToken;
 
-            $message->to($toEmail)->subject("TeamLeader account confirmation");
+            $this->captain->save();
 
-            $message->from(env('MAIL_USERNAME'));
+            // append the confirmation token to the link
+            $link .= "?confirmToken=$confirmToken";
 
-        });
+            Mail::send('emails.VerifyEmail', ['title' => $title, 'content' => $content, 'link' => $link], function ($message) use ($toEmail) {
 
-        return response()->json(['message' => $this->successMessage, 'status' => http_response_code()]);
+                $message->to($toEmail)->subject("TeamLeader account confirmation");
+
+                $message->from(env('MAIL_USERNAME'));
+
+            });
+
+            return($this->sendSuccessMessage());
+        }
+        else {
+
+            return($this->sendErrorMessage($this->errorMessage));
+        }
 
     }
 
     /**
      * Used to verify the Captains email after they have accessed the link sent to them
      * @param Request $request
-     * @return Client error if invalid request is received, success other wise
+     * @return \Illuminate\Http\JsonResponse error if invalid request is received, success other wise
      */
     public function verifyCaptainEmail(Request $request)
     {
@@ -90,31 +102,59 @@ class BusinessEmailController extends Controller
 
         $this->errorMessage = "Confirmation token is not valid";
 
-        $this->successMessage = "The email has been verified";
+        // The confirmation token must be valid and stored in the database to process the request
 
-        // default to bad request
-        http_response_code(400);
-
-        // Both the confirmation token and the member id must be valid for the request to process
-        if(empty($confirmToken))
+        if (empty($confirmToken) || Captain::where('confirm_token', '=', $confirmToken)->get()->isEmpty())
         {
-            return response()->json(['message' => $this->errorMessage, 'status' => http_response_code()]);
+            return($this->sendErrorMessage($this->errorMessage));
         }
-
         else {
 
-            if(Captain::where('confirm_token', '=', $confirmToken)->get()->isEmpty())
-            {
-                return response()->json(["message"=> $this->errorMessage, "status"=> http_response_code()]);
-            }
-
-            else
-            {
-                http_response_code(200);
-
-                return response()->json(['message' => $this->successMessage, "status"=> http_response_code()]);
-            }
+            //TODO mark as valid in the database
+            return($this->sendSuccessMessage("The email has been verified"));
         }
 
     }
+
+    /**
+     * Used to tailor the success message to send in a response
+     * @param null $message Sent in response if not null, else the class default success message is used
+     * @return \Illuminate\Http\JsonResponse with message and status
+     */
+    private function sendSuccessMessage($message=null)
+    {
+        if(empty($message))
+        {
+            $statusMessage = $this->successMessage;
+        }
+        else{
+            $statusMessage = $message;
+        }
+
+        return response()->json(['message' => $statusMessage]);
+
+    }
+
+    /**
+     * Used to tailor the error message to send in a response
+     * @param $message to be sent in response
+     * @param null $status of the request to send if not null, else class default status code is used
+     * @return \Illuminate\Http\JsonResponse with message and status
+     */
+    private function sendErrorMessage($message , $status=null)
+    {
+        $statusCode=null;
+
+        if(empty($status))
+        {
+            $statusCode = $this->status;
+        }
+        else
+        {
+            $statusCode = $status;
+        }
+
+        return response()->json(["message" => $message], $statusCode);
+    }
+
 }

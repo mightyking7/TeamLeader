@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\AccountManager;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Mail;
 use App\Captain;
 use App\Http\Controllers\Controller;
@@ -27,7 +28,7 @@ class BusinessEmailController extends Controller
     /**
      * BusinessEmailController constructor.
      */
-    public function __construct()
+    public function __construct(Request $request)
     {
         $this->successMessage = "Request complete";
 
@@ -43,6 +44,7 @@ class BusinessEmailController extends Controller
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse response for successful request
+     * @throws ModelNotFoundException if the email is not in the database
      */
     public function sendVerificationEmail(Request $request)
     {
@@ -59,13 +61,14 @@ class BusinessEmailController extends Controller
         $this->errorMessage = "One or more pieces of Captain information is not valid";
 
         // validate input and send the email only if the Captain has a registered account with TeamLeader
-        if (!empty($title) && !empty($content) && !empty($toEmail) && !Captain::where('email', '=', $toEmail)->get()->isEmpty())
+        if (!empty($title) && !empty($content) && !empty($toEmail))
         {
 
             // generate a confirmation token and save it in the database
             $confirmToken = bin2hex(random_bytes(16));
 
-            $this->captain = Captain::where('email', '=', $toEmail)->first();
+            // retrieve the Captain instance
+            $this->captain = Captain::where('email', '=', $toEmail)->firstOrFail();
 
             $this->captain->confirm_token = $confirmToken;
 
@@ -74,13 +77,13 @@ class BusinessEmailController extends Controller
             // append the confirmation token to the link
             $link .= "?confirmToken=$confirmToken";
 
-            Mail::send('emails.VerifyEmail', ['title' => $title, 'content' => $content, 'link' => $link], function ($message) use ($toEmail) {
-
-                $message->to($toEmail)->subject("TeamLeader account confirmation");
-
-                $message->from(env('MAIL_USERNAME'));
-
-            });
+//            Mail::send('emails.VerifyEmail', ['title' => $title, 'content' => $content, 'link' => $link], function ($message) use ($toEmail) {
+//
+//                $message->to($toEmail)->subject("TeamLeader account confirmation");
+//
+//                $message->from(env('MAIL_USERNAME'));
+//
+//            });
 
             return($this->sendSuccessMessage());
         }
@@ -95,6 +98,7 @@ class BusinessEmailController extends Controller
      * Used to verify the Captains email after they have accessed the link sent to them
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse error if invalid request is received, success other wise
+     * @throws ModelNotFoundException if the confirmToken is not in the database
      */
     public function verifyCaptainEmail(Request $request)
     {
@@ -104,13 +108,19 @@ class BusinessEmailController extends Controller
 
         // The confirmation token must be valid and stored in the database to process the request
 
-        if (empty($confirmToken) || Captain::where('confirm_token', '=', $confirmToken)->get()->isEmpty())
+        if (empty($confirmToken))
         {
             return($this->sendErrorMessage($this->errorMessage));
         }
         else {
 
-            //TODO mark as valid in the database
+            // mark the email as verified in the database
+            $this->captain = Captain::where('confirm_token', '=', $confirmToken)->firstOrFail();
+
+            $this->captain->email_verified = 1;
+
+            $this->captain->save();
+
             return($this->sendSuccessMessage("The email has been verified"));
         }
 

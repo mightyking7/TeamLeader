@@ -77,13 +77,13 @@ class BusinessEmailController extends Controller
             // append the confirmation token to the link
             $link .= "?confirmToken=$confirmToken";
 
-//            Mail::send('emails.VerifyEmail', ['title' => $title, 'content' => $content, 'link' => $link], function ($message) use ($toEmail) {
-//
-//                $message->to($toEmail)->subject("TeamLeader account confirmation");
-//
-//                $message->from(env('MAIL_USERNAME'));
-//
-//            });
+            Mail::send('emails.VerifyEmail', ['title' => $title, 'content' => $content, 'link' => $link], function ($message) use ($toEmail) {
+
+                $message->to($toEmail)->subject("TeamLeader account confirmation");
+
+                $message->from(env('MAIL_USERNAME'));
+
+            });
 
             return($this->sendSuccessMessage());
         }

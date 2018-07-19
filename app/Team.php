@@ -13,20 +13,13 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Team extends Model
 {
-    private $name;         // Team name
-
-    private $photoUrl;     // URL to team logo in the storage directory
-
-    private $description;  // Description of Team's purpose and activities
-
-    private $isRecruiting; // Boolean of whether the team is currently recruiting members
 
     /**
      * The attributes that are mass assignable
      *
      * @var array
      */
-    protected $fillable = ['name', 'photoUrl', 'description', 'isRecruiting'];
+    protected $fillable = ['name', 'photoUrl', 'description', 'recruiting'];
 
 
 }

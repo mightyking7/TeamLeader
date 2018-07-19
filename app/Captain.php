@@ -2,7 +2,6 @@
 
 namespace App;
 
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 
 class Captain extends Model
@@ -24,5 +23,5 @@ class Captain extends Model
      */
 
     protected $hidden = ['password', 'remember_token'];
-    
+
 }

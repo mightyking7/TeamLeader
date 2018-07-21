@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\TeamManager;
 
+use Illuminate\Http\File;
+use Illuminate\Http\Request;
 use App\Http\Requests\StoreTeam;
 use App\Http\Controllers\Controller;
 use App\Team;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * @author Isaac Buitrago
@@ -14,6 +17,32 @@ use App\Team;
 class TeamController extends Controller
 {
 
+    /**
+     * The current team
+     * @var Team
+     */
+    private $team;
+
+    /**
+     * @return mixed
+     */
+    public function getTeam()
+    {
+        return $this->team;
+    }
+
+    /**
+     * @param mixed $team
+     */
+    public function setTeam($team): void
+    {
+        $this->team = $team;
+    }
+
+    /**
+     * @param StoreTeam $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function createTeam(StoreTeam $request)
     {
         //TODO make sure the error response is react compatible
@@ -32,16 +61,45 @@ class TeamController extends Controller
 
         $team->recruiting =  $validData['recruiting'];
 
-        if(!empty($request->file('team_logo')))
-        {
-            // store the image and store it's path
-
-            $team->photo_url = $request->file('team_logo')->store('team_logos');
-
-        }
-
         $team->save();
 
         return (response()->json(["Team $team->name created"]));
+    }
+
+    /**
+     * Used to set the logo for a team, if no image is provided a default logo is utilized.
+     * The precondition is that the team is not null
+     * @param Request $request
+     */
+    public function setLogo(Request $request)
+    {
+
+        if($request->hasFile('team_logo'))
+        {
+            // validate the file and store it
+
+            // TODO system should run at lower privilege at this point
+
+            $validator = Validator::make($request->all(), [
+                'team_logo' => 'nullable|file|image|mimes:bmp,gif,jpeg,jpg,jif,jfif,png,svg,tiff,tif|max:10000'
+            ]);
+
+            if($validator->fails())
+            {
+                return (response()->json(['invalid file']));
+            }
+
+            $this->team->photo_url = $request->file('team_logo')->store('team_logos');
+        }
+
+        else
+        {
+
+            $this->team->photo_url = env('DEFAULT_TEAM_LOGO');
+        }
+
+        $this->team->save();
+
+        return(response()->json(["logo set"]));
     }
 }

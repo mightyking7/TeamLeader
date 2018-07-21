@@ -32,9 +32,7 @@ class TeamController extends Controller
 
         $team->recruiting =  $validData['recruiting'];
 
-        $logo = $validData['file'];
-
-        if(!empty($logo))
+        if(!empty($request->file('team_logo')))
         {
             // store the image and store it's path
 

@@ -30,8 +30,7 @@ Route::post('/confirm', 'AccountManager\BusinessEmailController@verifyCaptainEma
  * Team routes
  */
 
-// TODO authenticate the user attempting to access this team
-Route::post('/team', 'TeamManager\TeamController@createTeam');
+Route::post('/team', 'TeamManager\TeamController@createTeam')->middleware('auth');
 
 Route::put('/teamlogo/{team}', function(Team $team, Request $request){
 

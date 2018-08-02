@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
 
     <!-- Styles -->
+    <link href="{{mix('css/app.css')}}" rel="stylesheet" type="text/css">
+
     <style>
         html, body {
             background-color: #fff;
@@ -69,7 +71,6 @@
     @if (Route::has('login'))
         <div class="top-right links">
             @auth
-                <a href="{{ url('/home') }}">Home</a>
             @else
                 <a href="{{ route('login') }}">Login</a>
                 <a href="{{ route('register') }}">Register</a>
@@ -92,5 +93,13 @@
         </div>
     </div>
 </div>
+
+<div id="example">
+
+</div>
+
+<!-- Scripts -->
+<script src ="{{mix('js/app.js')}}" ></script>
+
 </body>
 </html>

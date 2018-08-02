@@ -13,4 +13,5 @@ require('./bootstrap');
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
 
-require('./components/Example.js');
+require('./components/Dashboard.js');
+

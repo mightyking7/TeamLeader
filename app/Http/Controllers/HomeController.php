@@ -29,12 +29,6 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $captain = Auth::user();
-
-        $teams = Team::where('captain_id', '=', $captain->getAuthIdentifier())->get(
-
-            ['id','name','description','recruiting','created_at','updated_at']);
-
-        return(view('dashboard', [$teams->toJson()] ));
+        return(view('dashboard'));
     }
 }

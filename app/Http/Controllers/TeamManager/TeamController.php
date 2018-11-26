@@ -6,8 +6,10 @@ use Illuminate\Http\File;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreTeam;
 use App\Http\Controllers\Controller;
-use App\Team;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use App\Team;
+
 
 /**
  * @author Isaac Buitrago
@@ -101,5 +103,20 @@ class TeamController extends Controller
         $this->team->save();
 
         return(response()->json(["logo set"]));
+    }
+
+    /**
+     * Used to retrieve the set of teams for the current authenticted users
+     * @param Request $request
+     */
+    public function getTeams(Request $request)
+    {
+        $captain = Auth::user();
+
+        $teams = Team::where('captain_id', '=', $captain->getAuthIdentifier())->get(
+
+            ['id','name','description','recruiting','created_at','updated_at']);
+
+        return(response()->json($teams));
     }
 }

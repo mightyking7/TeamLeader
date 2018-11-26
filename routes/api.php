@@ -37,4 +37,4 @@ Route::put('/teamlogo/{team}', function(Team $team, Request $request){
     $team->setLogoAdapter($request);
 });
 
-
+Route::get('/teams','TeamManager\TeamController@getTeams')->middleware('auth');

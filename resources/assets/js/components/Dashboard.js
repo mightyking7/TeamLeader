@@ -5,8 +5,11 @@ import Card from './Card';
 
 /**
  * Dashboard controls state of team cards
+ *
+ * @author Isaac Buitrago
  */
-class Dashboard extends React.Component {
+class Dashboard extends React.Component
+{
 
     constructor(props)
     {
